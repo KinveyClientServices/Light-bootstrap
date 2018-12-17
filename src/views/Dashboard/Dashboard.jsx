@@ -1,10 +1,10 @@
-import React, { Component } from "react";
-import ChartistGraph from "react-chartist";
-import { Grid, Row, Col } from "react-bootstrap";
+import React, { Component } from 'react';
+import ChartistGraph from 'react-chartist';
+import { Grid, Row, Col } from 'react-bootstrap';
 
-import { Card } from "components/Card/Card.jsx";
-import { StatsCard } from "components/StatsCard/StatsCard.jsx";
-import { Tasks } from "components/Tasks/Tasks.jsx";
+import { Card } from 'components/Card/Card.jsx';
+import { StatsCard } from 'components/StatsCard/StatsCard.jsx';
+import { Tasks } from 'components/Tasks/Tasks.jsx';
 import {
   dataPie,
   legendPie,
@@ -16,16 +16,63 @@ import {
   optionsBar,
   responsiveBar,
   legendBar
-} from "variables/Variables.jsx";
+} from 'variables/Variables.jsx';
+
+import { Kinvey } from 'kinvey-html5-sdk';
 
 class Dashboard extends Component {
+  constructor(props) {
+    super(props);
+    // Don't call this.setState() here!
+    this.state = { stats: {}, datapie: {} };
+  }
+
+  // var dataPie = {
+  //   labels: ['40%', '20%', '40%'],
+  //   series: [40, 20, 40]
+  // };
+
+  componentDidMount() {
+    var that = this;
+    var votesDataStore = Kinvey.DataStore.collection('Votes');
+    var stream = votesDataStore.find();
+    stream.subscribe(
+      function onNext(entities) {
+        console.log(entities.length);
+        if (entities.length > 0) {
+          that.setState({
+            stats: entities[entities.length - 1].stats,
+            datapie: {
+              labels: [
+                entities[entities.length - 1].stats.smilePercent,
+                entities[entities.length - 1].stats.mehPercent,
+                entities[entities.length - 1].stats.frownPercent
+              ],
+              series: [
+                parseInt(entities[entities.length - 1].stats.smileNum),
+                parseInt(entities[entities.length - 1].stats.mehNum),
+                parseInt(entities[entities.length - 1].stats.frownNum)
+              ]
+            }
+          });
+        }
+      },
+      function onError(error) {
+        console.log(error);
+      },
+      function onComplete(entities) {
+        console.log(entities);
+      }
+    );
+  }
+
   createLegend(json) {
     var legend = [];
-    for (var i = 0; i < json["names"].length; i++) {
-      var type = "fa fa-circle text-" + json["types"][i];
+    for (var i = 0; i < json['names'].length; i++) {
+      var type = 'fa fa-circle text-' + json['types'][i];
       legend.push(<i className={type} key={i} />);
-      legend.push(" ");
-      legend.push(json["names"][i]);
+      legend.push(' ');
+      legend.push(json['names'][i]);
     }
     return legend;
   }
@@ -36,37 +83,25 @@ class Dashboard extends Component {
           <Row>
             <Col lg={3} sm={6}>
               <StatsCard
-                bigIcon={<i className="pe-7s-server text-warning" />}
-                statsText="Capacity"
-                statsValue="105GB"
-                statsIcon={<i className="fa fa-refresh" />}
+                bigIcon={<i className="fa fa-smile-o smileIcon" />}
+                statsValue={this.state.stats.smilePercent}
+                statsIcon={<i className="fa fa-smile-o" />}
                 statsIconText="Updated now"
               />
             </Col>
             <Col lg={3} sm={6}>
               <StatsCard
-                bigIcon={<i className="pe-7s-wallet text-success" />}
-                statsText="Revenue"
-                statsValue="$1,345"
-                statsIcon={<i className="fa fa-calendar-o" />}
-                statsIconText="Last day"
+                bigIcon={<i className="fa fa-meh-o mehIcon" />}
+                statsValue={this.state.stats.mehPercent}
+                statsIcon={<i className="fa fa-meh-o" />}
+                statsIconText="Updated now"
               />
             </Col>
             <Col lg={3} sm={6}>
               <StatsCard
-                bigIcon={<i className="pe-7s-graph1 text-danger" />}
-                statsText="Errors"
-                statsValue="23"
-                statsIcon={<i className="fa fa-clock-o" />}
-                statsIconText="In the last hour"
-              />
-            </Col>
-            <Col lg={3} sm={6}>
-              <StatsCard
-                bigIcon={<i className="fa fa-twitter text-info" />}
-                statsText="Followers"
-                statsValue="+45"
-                statsIcon={<i className="fa fa-refresh" />}
+                bigIcon={<i className="fa fa-frown-o frownIcon" />}
+                statsValue={this.state.stats.frownPercent}
+                statsIcon={<i className="fa fa-frown-o" />}
                 statsIconText="Updated now"
               />
             </Col>
@@ -76,8 +111,8 @@ class Dashboard extends Component {
               <Card
                 statsIcon="fa fa-history"
                 id="chartHours"
-                title="Users Behavior"
-                category="24 Hours performance"
+                title="CSAT History"
+                category="7 Days performance"
                 stats="Updated 3 minutes ago"
                 content={
                   <div className="ct-chart">
@@ -97,60 +132,19 @@ class Dashboard extends Component {
             <Col md={4}>
               <Card
                 statsIcon="fa fa-clock-o"
-                title="Email Statistics"
-                category="Last Campaign Performance"
+                title="CSAT Breakdown"
+                category="Total CSAT Breakdown by Choice"
                 stats="Campaign sent 2 days ago"
                 content={
                   <div
                     id="chartPreferences"
                     className="ct-chart ct-perfect-fourth"
                   >
-                    <ChartistGraph data={dataPie} type="Pie" />
+                    <ChartistGraph data={this.state.datapie} type="Pie" />
                   </div>
                 }
                 legend={
                   <div className="legend">{this.createLegend(legendPie)}</div>
-                }
-              />
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={6}>
-              <Card
-                id="chartActivity"
-                title="2014 Sales"
-                category="All products including Taxes"
-                stats="Data information certified"
-                statsIcon="fa fa-check"
-                content={
-                  <div className="ct-chart">
-                    <ChartistGraph
-                      data={dataBar}
-                      type="Bar"
-                      options={optionsBar}
-                      responsiveOptions={responsiveBar}
-                    />
-                  </div>
-                }
-                legend={
-                  <div className="legend">{this.createLegend(legendBar)}</div>
-                }
-              />
-            </Col>
-
-            <Col md={6}>
-              <Card
-                title="Tasks"
-                category="Backend development"
-                stats="Updated 3 minutes ago"
-                statsIcon="fa fa-history"
-                content={
-                  <div className="table-full-width">
-                    <table className="table">
-                      <Tasks />
-                    </table>
-                  </div>
                 }
               />
             </Col>

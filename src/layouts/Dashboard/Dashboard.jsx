@@ -1,14 +1,15 @@
-import React, { Component } from "react";
-import { Route, Switch, Redirect } from "react-router-dom";
-import NotificationSystem from "react-notification-system";
+import React, { Component } from 'react';
+import { Route, Switch, Redirect } from 'react-router-dom';
+import NotificationSystem from 'react-notification-system';
 
-import Header from "components/Header/Header";
-import Footer from "components/Footer/Footer";
-import Sidebar from "components/Sidebar/Sidebar";
+import Header from 'components/Header/Header';
+import Footer from 'components/Footer/Footer';
+import Sidebar from 'components/Sidebar/Sidebar';
 
-import { style } from "variables/Variables.jsx";
+import { style } from 'variables/Variables.jsx';
 
-import dashboardRoutes from "routes/dashboard.jsx";
+import dashboardRoutes from 'routes/dashboard.jsx';
+import { Kinvey } from 'kinvey-html5-sdk';
 
 class Dashboard extends Component {
   constructor(props) {
@@ -24,16 +25,16 @@ class Dashboard extends Component {
     var level;
     switch (color) {
       case 1:
-        level = "success";
+        level = 'success';
         break;
       case 2:
-        level = "warning";
+        level = 'warning';
         break;
       case 3:
-        level = "error";
+        level = 'error';
         break;
       case 4:
-        level = "info";
+        level = 'info';
         break;
       default:
         break;
@@ -58,42 +59,61 @@ class Dashboard extends Component {
     var level;
     switch (color) {
       case 1:
-        level = "success";
+        level = 'success';
         break;
       case 2:
-        level = "warning";
+        level = 'warning';
         break;
       case 3:
-        level = "error";
+        level = 'error';
         break;
       case 4:
-        level = "info";
+        level = 'info';
         break;
       default:
         break;
     }
-    _notificationSystem.addNotification({
-      title: <span data-notify="icon" className="pe-7s-gift" />,
-      message: (
-        <div>
-          Welcome to <b>Light Bootstrap Dashboard</b> - a beautiful freebie for
-          every web developer.
-        </div>
-      ),
-      level: level,
-      position: "tr",
-      autoDismiss: 15
+    // _notificationSystem.addNotification({
+    //   title: <span data-notify="icon" className="pe-7s-gift" />,
+    //   message: (
+    //     <div>
+    //       Welcome to <b>Light Bootstrap Dashboard</b> - a beautiful freebie for
+    //       every web developer.
+    //     </div>
+    //   ),
+    //   level: level,
+    //   position: "tr",
+    //   autoDismiss: 15
+    // });
+  }
+
+  componentWillMount() {
+    Kinvey.init({
+      appKey: 'kid_SJ-8eHxA7',
+      appSecret: '3bfec84fdf864dada820188f50f67911'
     });
+    var promise = Kinvey.ping()
+      .then(function(response) {
+        console.log(
+          'Kinvey Ping Success. Kinvey Service is alive, version: ' +
+            response.version +
+            ', response: ' +
+            response.kinvey
+        );
+      })
+      .catch(function(error) {
+        console.log('Kinvey Ping Failed. Response: ' + error.description);
+      });
   }
   componentDidUpdate(e) {
     if (
       window.innerWidth < 993 &&
       e.history.location.pathname !== e.location.pathname &&
-      document.documentElement.className.indexOf("nav-open") !== -1
+      document.documentElement.className.indexOf('nav-open') !== -1
     ) {
-      document.documentElement.classList.toggle("nav-open");
+      document.documentElement.classList.toggle('nav-open');
     }
-    if (e.history.action === "PUSH") {
+    if (e.history.action === 'PUSH') {
       document.documentElement.scrollTop = 0;
       document.scrollingElement.scrollTop = 0;
       this.refs.mainPanel.scrollTop = 0;
@@ -108,7 +128,7 @@ class Dashboard extends Component {
           <Header {...this.props} />
           <Switch>
             {dashboardRoutes.map((prop, key) => {
-              if (prop.name === "Notifications")
+              if (prop.name === 'Notifications')
                 return (
                   <Route
                     path={prop.path}
@@ -128,7 +148,7 @@ class Dashboard extends Component {
               );
             })}
           </Switch>
-          <Footer />
+          {/* <Footer /> */}
         </div>
       </div>
     );
